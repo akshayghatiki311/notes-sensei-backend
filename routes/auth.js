@@ -5,6 +5,7 @@ const {body,validationResult} = require('express-validator');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = "darkjedisith";
+const fetchuser = require('../middleware/fetchuser');
 
 
 // Add/Create user(/api/auth/createuser) No login req
@@ -78,6 +79,21 @@ router.post('/login',[
         }
         const authToken = jwt.sign(data,JWT_SECRET);
         res.json({authToken});
+    } catch(err){
+        console.error(err.message);
+        res.status(500).send("Internal server error");
+    }
+});
+
+// Fetch user details(/api/auth/getuser) No login req
+router.post('/getuser',fetchuser, async (req,res)=>{
+    try {
+        userId = req.user.id;
+        const user = await User.findById(userId).select("-password");
+        if(!user){
+            res.status(404).send({error:"User not found"});
+        }
+        res.send(user);
     } catch(err){
         console.error(err.message);
         res.status(500).send("Internal server error");
